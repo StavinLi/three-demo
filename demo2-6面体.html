@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>基本材质</title>
+    <script type="text/javascript" src="js/three.min.js"></script>
+</head>
+
+<body onload="init();">
+    <script>
+        function init() {
+            // 渲染器
+            var renderer = new THREE.WebGLRenderer();
+            renderer.setSize(800, 600);
+            document.body.appendChild(renderer.domElement);
+            renderer.setClearColor(0x000000);
+
+            // 场景
+            var scene = new THREE.Scene();
+
+            // 相机
+            var camera = new THREE.OrthographicCamera(-5, 5, 3.75, -3.75, 0.1, 100);
+            camera.position.set(25, -10, 25);
+            camera.lookAt(new THREE.Vector3(0, 0, 0));
+            scene.add(camera);
+
+            // 光
+            var light = new THREE.PointLight(0xffffff, 1, 100);
+            light.position.set(10, 15, 5);
+            scene.add(light);
+
+            // 初始化几何形状
+            var geometry = new THREE.Geometry();
+
+            // 设置顶点的位置 
+            // 顶部4个点
+            geometry.vertices.push(new THREE.Vector3(-1, 2, -1));
+            geometry.vertices.push(new THREE.Vector3(1, 2, -1));
+            geometry.vertices.push(new THREE.Vector3(1, 2, 1));
+            geometry.vertices.push(new THREE.Vector3(-1, 2, 1));
+            // 底部4顶点
+            geometry.vertices.push(new THREE.Vector3(-2, 0, -2));
+            geometry.vertices.push(new THREE.Vector3(2, 0, -2));
+            geometry.vertices.push(new THREE.Vector3(2, 0, 2));
+            geometry.vertices.push(new THREE.Vector3(-2, 0, 2));
+
+            // 设置顶点连接情况
+            geometry.faces.push(new THREE.Face4(0, 1, 2, 3));
+            //底面
+            geometry.faces.push(new THREE.Face4(4, 5, 6, 7));
+            //四个侧面
+            geometry.faces.push(new THREE.Face4(0, 1, 5, 4));
+            geometry.faces.push(new THREE.Face4(1, 2, 6, 5));
+            geometry.faces.push(new THREE.Face4(2, 3, 7, 6));
+            geometry.faces.push(new THREE.Face4(3, 0, 4, 7));
+            // 渲染
+            var material = new THREE.MeshBasicMaterial({
+                color: 0xffff00,
+                wireframe: true
+
+            });
+
+            var mesh = new THREE.Mesh(geometry, material);
+            mesh.drawMode = THREE.TrianglesDrawMode; //default
+
+            scene.add(mesh);
+            renderer.render(scene, camera);
+        }
+    </script>
+</body>
+
+</html>
