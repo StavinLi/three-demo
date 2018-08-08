@@ -25,69 +25,47 @@
             background-color: #EEEEEE;
         }
     </style>
+    <script src="js/jquery-3.1.1.min.js"></script>
     <script type="text/javascript" src="js/three.min.js"></script>
     <script type="text/javascript" src="js/stats.min.js"></script>
 </head>
 
-<body onload="init();">
+<body onload="threeStart();">
     <script>
-        function init() {
-            // 渲染器
-            var width = document.getElementById('canvas-frame').clientWidth;
-            var height = document.getElementById('canvas-frame').clientHeight;
-            var renderer = new THREE.WebGLRenderer();
+        var renderer, camera, scene, light, width, height;
+
+        function initThree() { // 渲染器
+            width = document.getElementById('canvas-frame').clientWidth;
+            height = document.getElementById('canvas-frame').clientHeight;
+            renderer = new THREE.WebGLRenderer({
+                antialias: true //抗锯齿
+            });
             renderer.setSize(width, height);
             document.getElementById('canvas-frame').appendChild(renderer.domElement);
-            renderer.setClearColor(0x000000);
+            renderer.setClearColor(0xFFFFFF, 1.0); //画布颜色
+        }
 
-            // 场景
-            var scene = new THREE.Scene();
+        function initScene() { // 场景
+            scene = new THREE.Scene();
+        }
 
-            // 相机
-            var camera = new THREE.OrthographicCamera(-5, 5, 3.75, -3.75, 0.1, 100);
+        function initCamera() { // 相机
+            //正交投影照相机OrthographicCamera(left, right, top, bottom, near, far) 
+            //透视投影照相机 PerspectiveCamera(fov, aspect, near, far) 
+            camera = new THREE.OrthographicCamera(-5, 5, 3.75, -3.75, 0.1, 100);
             camera.position.set(25, 15, 25);
+            // camera.lookAt(new THREE.Vector3(-1, -2, 0));
             camera.lookAt(new THREE.Vector3(0, 0, 0));
             scene.add(camera);
+        };
 
-            // 光
-            var light = new THREE.PointLight(0xffffff, 1, 100);
+        function initLight() { // 光
+            light = new THREE.PointLight(0xffffff, 1, 100);
             light.position.set(10, 15, 5);
             scene.add(light);
-            // 初始化几何形状
-            function gePoints(a, num) {
-                var geometry = new THREE.Geometry();
-                var topArr = [],
-                    bottomArr = []
-                for (var i = 0; i < a.split(" ").length; i++) {
-                    var b = a.split(" ")[i].split(",")
-                    geometry.vertices.push(new THREE.Vector3(b[0] / num, 0, b[1] / num));
-                    topArr.push(i)
-                    bottomArr.push(i + a.split(" ").length)
-                }
-                for (var i = 0; i < a.split(" ").length; i++) {
-                    var b = a.split(" ")[i].split(",")
-                    geometry.vertices.push(new THREE.Vector3(b[0] / num, 160 / num, b[1] / num));
-                }
-                //顶面  //底面
-                geometry.faces.push(new THREE.Face4(...topArr));
-                geometry.faces.push(new THREE.Face4(...bottomArr));
-                //侧面
-                for (var i = 0; i < a.split(" ").length; i++) {
-                    if (i != a.split(" ").length - 1) {
-                        geometry.faces.push(new THREE.Face4(i, i + 1, a.split(" ").length + i + 1, a.split(" ").length + i));
-                    } else {
-                        geometry.faces.push(new THREE.Face4(i, 0, a.split(" ").length, a.split(" ").length + i));
-                    }
-                }
-                var material = new THREE.MeshBasicMaterial({
-                    color: 0xffff00,
-                    wireframe: true
+        }
 
-                });
-                var mesh = new THREE.Mesh(geometry, material);
-                mesh.drawMode = THREE.TrianglesDrawMode; //default
-                scene.add(mesh);
-            }
+        function initObject() {
             gePoints("344,161 816,160 816,290 759,290 736,290 736,223 673,224 673,179 605,180 604.9060453400504,225.0808564231738 552.9508816120906,225.90554156171282 500,259 451,276 347,277", 180)
             gePoints("805,362 701,362 701,514 805,514", 180)
             gePoints("816,570 296,570 296,1170 816,1170", 180)
@@ -95,24 +73,51 @@
             gePoints("816,696 848,696 848,788 816,788", 180)
             gePoints("816,858 848,858 848,1018 816,1018", 180)
             gePoints("244,125 885,125 885,1253 244,1253", 180)
-
-
-            var stats = new Stats();
-            document.body.appendChild(stats.domElement);
-            stats.domElement.style.position = 'absolute';
-
-            stats.domElement.style.left = '0px';
-
-            stats.domElement.style.top = '0px';
-
-            function animation() {
-                //renderer.clear();
-                camera.position.x = camera.position.x + 0.01;
-                renderer.render(scene, camera);
-                requestAnimationFrame(animation);
-                stats.update();
+        }
+        // 初始化几何形状
+        function gePoints(a, num) {
+            var geometry = new THREE.Geometry();
+            var topArr = [],
+                bottomArr = []
+            for (var i = 0; i < a.split(" ").length; i++) {
+                var b = a.split(" ")[i].split(",")
+                geometry.vertices.push(new THREE.Vector3(b[0] / num, 0, b[1] / num));
+                topArr.push(i)
+                bottomArr.push(i + a.split(" ").length)
             }
-            animation();
+            for (var i = 0; i < a.split(" ").length; i++) {
+                var b = a.split(" ")[i].split(",")
+                geometry.vertices.push(new THREE.Vector3(b[0] / num, 160 / num, b[1] / num));
+            }
+            //上下面
+            geometry.faces.push(new THREE.Face4(...topArr));
+            geometry.faces.push(new THREE.Face4(...bottomArr));
+            //侧面
+            for (var i = 0; i < a.split(" ").length; i++) {
+                if (i != a.split(" ").length - 1) {
+                    geometry.faces.push(new THREE.Face4(i, i + 1, a.split(" ").length + i + 1, a.split(" ").length + i));
+                } else {
+                    geometry.faces.push(new THREE.Face4(i, 0, a.split(" ").length, a.split(" ").length + i));
+                }
+            }
+            var material = new THREE.MeshBasicMaterial({
+                color: 0xffff00,
+                wireframe: true
+
+            });
+            var mesh = new THREE.Mesh(geometry, material);
+            mesh.drawMode = THREE.TrianglesDrawMode; //default
+            scene.add(mesh);
+        }
+
+        function threeStart() {
+            initThree();
+            initScene();
+            initCamera();
+            initLight();
+            initObject();
+            renderer.clear();
+            renderer.render(scene, camera);
         }
     </script>
     <div id="canvas-frame"></div>
