@@ -56,20 +56,18 @@
 
         function initCamera() { // 透视投影照相机
             camera = new THREE.PerspectiveCamera(45, width / height, 1, 10000); // 新建一个透视摄像机, 并设置 视场, 视野长宽比例, 可见远近范围
-            camera.position.set(1500, 1500, 1500) // 设置摄像机的位置
+            camera.position.set(1000, 1000, 1000) // 设置摄像机的位置
             camera.lookAt(new THREE.Vector3(0, 0, 0)); // 设置摄像机观察的方向
             scene.add(camera);
         };
 
         function initLight() { // 光
-            light = new THREE.PointLight(0xffffff, 1, 100);
-            light.position.set(10, 15, 5);
+            light = new THREE.PointLight(0xff0000, 1, 100);
+            light.position.set(1000, 1000, 1000);
             scene.add(light);
         }
 
         function initObject() {
-            var helper = new THREE.AxisHelper(1500);
-            scene.add(helper);
             var initDataArr = ["244,125 885,125 885,1253 244,1253",
                 "344,161 816,160 816,290 759,290 736,290 736,223 673,224 673,179 605,180 604.9060453400504,225.0808564231738 552.9508816120906,225.90554156171282 500,259 451,276 347,277",
                 "805,362 701,362 701,514 805,514",
@@ -113,8 +111,10 @@
             }
             var material = new THREE.MeshLambertMaterial({
                 color: 0x000000,
-                wireframe: true
+                transparent: true,
+                opacity: 0.5
             });
+            material.side = THREE.DoubleSide; //设置成两面都可见
             var mesh = new THREE.Mesh(geometry, material);
             mesh.drawMode = THREE.TrianglesDrawMode; //default
             scene.add(mesh);
