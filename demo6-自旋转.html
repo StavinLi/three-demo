@@ -87,6 +87,7 @@
                 gePoints(initDataArr[i], 180, 160, evX, evY)
             }
         }
+        var cube = Array();
         // 初始化几何形状
         function gePoints(a, num, height, evX, evY) {
             var geometry = new THREE.Geometry();
@@ -119,6 +120,7 @@
 
             });
             var mesh = new THREE.Mesh(geometry, material);
+            cube.push(mesh)
             mesh.drawMode = THREE.TrianglesDrawMode; //default
             scene.add(mesh);
         }
@@ -130,32 +132,19 @@
             initLight();
             initObject();
             renderer.clear();
+            render();
             renderer.render(scene, camera);
         }
-        var cameraRound = 10;
-        $("body").bind("mousedown", cameraMove);
-        var arf = 0;
-        var oldArf = 0;
 
-        function cameraMove(ev) {
-            var mouseDownY = ev.pageY;
-            var mouseDownX = ev.pageX;
-            var zeroPoint = new THREE.Vector3(0, 0, 0);
-            $("body").bind("mousemove", function(ev) {
-                var mouseMoveY = ev.pageY;
-                var mouseMoveX = ev.pageX;
-                arf = (mouseMoveX - mouseDownX) / 100 + oldArf;
-                camera.position.z = cameraRound * (Math.cos(arf));
-                camera.position.x = cameraRound * (Math.sin(arf));
-                camera.lookAt(zeroPoint);
-                renderer.clear();
-                renderer.render(scene, camera);
-            });
-            $("body").bind("mouseup", function(ev) {
-                $("body").unbind("mousemove");
-                oldArf = arf;
-            })
-        }
+        var render = function() {
+            requestAnimationFrame(render);
+            for (var i = 0; i < cube.length; i++) {
+                // cube[i].rotation.x += 0.01;
+                cube[i].rotation.y += 0.01;
+                // cube[i].rotation.z += 0.01;
+            }
+            renderer.render(scene, camera);
+        };
     </script>
     <div id="canvas-frame"></div>
 </body>
