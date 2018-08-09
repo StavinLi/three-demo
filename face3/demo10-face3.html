@@ -106,10 +106,10 @@
             for (var i = 0; i < a.split(" ").length; i++) {
                 if (i != a.split(" ").length - 1) {
                     geometry.faces.push(new THREE.Face3(i, i + 1, a.split(" ").length + i + 1));
-                    geometry.faces.push(new THREE.Face4(i, a.split(" ").length + i + 1, a.split(" ").length + i));
+                    geometry.faces.push(new THREE.Face3(i, a.split(" ").length + i + 1, a.split(" ").length + i));
                 } else {
-                    geometry.faces.push(new THREE.Face4(i, 0, a.split(" ").length));
-                    geometry.faces.push(new THREE.Face4(i, a.split(" ").length, a.split(" ").length + i));
+                    geometry.faces.push(new THREE.Face3(i, 0, a.split(" ").length));
+                    geometry.faces.push(new THREE.Face3(i, a.split(" ").length, a.split(" ").length + i));
                 }
             }
             var material = new THREE.MeshBasicMaterial({
