@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>基本材质</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+        }
+        
+        div#canvas-frame {
+            border: none;
+            cursor: pointer;
+            width: 100%;
+            height: 100%;
+            background-color: #EEEEEE;
+        }
+    </style>
+    <script src="js/jquery-3.1.1.min.js"></script>
+    <script src="js/limitTextNum.js"></script>
+    <script type="text/javascript" src="js/three.js"></script>
+    <script src="js/OrbitControls.js"></script>
+    <script type="text/javascript" src="js/stats.min.js"></script>
+    <script src="js/dat.gui.min.js"></script>
+</head>
+
+<body onload="threeStart();">
+    <script>
+        var renderer, camera, scene, light, width, height, controls;
+
+        function initThree() { // 渲染器
+            width = document.getElementById('canvas-frame').clientWidth;
+            height = document.getElementById('canvas-frame').clientHeight;
+            renderer = new THREE.WebGLRenderer({
+                antialias: true //抗锯齿
+            });
+            renderer.setSize(width, height);
+            document.getElementById('canvas-frame').appendChild(renderer.domElement);
+            renderer.setClearColor(0xFFFFFF, 1.0); //画布颜色
+        }
+
+        function initScene() { // 场景
+            scene = new THREE.Scene();
+        }
+
+        function initCamera() { // 相机
+            //正交投影照相机OrthographicCamera(left, right, top, bottom, near, far) 
+            //透视投影照相机 PerspectiveCamera(fov, aspect, near, far) 
+            camera = new THREE.PerspectiveCamera(45, width / height, 1, 10000);
+            camera.position.x = 1500;
+            camera.position.y = 1500;
+            camera.position.z = 1500;
+            camera.up.x = 0;
+            camera.up.y = 1;
+            camera.up.z = 0;
+            camera.lookAt(new THREE.Vector3(0, 0, 0));
+            scene.add(camera);
+        };
+
+        function initLight() { // 光
+            light = new THREE.PointLight(0xffffff, 1, 100);
+            light.position.set(10, 15, 5);
+            scene.add(light);
+        }
+
+        function initObject() {
+            var initDataArr = ["244,125 885,125 885,1253 244,1253",
+                "344,161 816,160 816,290 759,290 736,290 736,223 673,224 673,179 605,180 604.9060453400504,225.0808564231738 552.9508816120906,225.90554156171282 500,259 451,276 347,277",
+                "805,362 701,362 701,514 805,514",
+                "816,570 296,570 296,1170 816,1170",
+                "816,570 848,570 848,666 816,666",
+                "816,696 848,696 848,788 816,788",
+                "816,858 848,858 848,1018 816,1018",
+            ]
+            var translateX = [];
+            var translateY = [];
+            for (var i = 0; i < initDataArr[0].split(" ").length; i++) {
+                translateX.push(initDataArr[0].split(" ")[i].split(",")[0])
+                translateY.push(initDataArr[0].split(" ")[i].split(",")[1])
+            }
+            var evX = translateX.min() + (translateX.max() - translateX.min()) / 2
+            var evY = translateY.min() + (translateY.max() - translateY.min()) / 2
+            for (var i = 0; i < initDataArr.length; i++) {
+                gePoints(initDataArr[i], 160, evX, evY)
+            }
+        }
+        // 初始化几何形状
+        function gePoints(a, height, evX, evY) {
+            var geometry = new THREE.Geometry();
+            for (var i = 0; i < a.split(" ").length; i++) {
+                var b = a.split(" ")[i].split(",")
+                geometry.vertices.push(new THREE.Vector3(b[0] - evX, height / 2, b[1] - evY));
+            }
+            for (var i = 0; i < a.split(" ").length; i++) {
+                var b = a.split(" ")[i].split(",")
+                geometry.vertices.push(new THREE.Vector3(b[0] - evX, -height / 2, b[1] - evY));
+            }
+            //侧面
+            for (var i = 0; i < a.split(" ").length; i++) {
+                if (i != a.split(" ").length - 1) {
+                    geometry.faces.push(new THREE.Face4(i, i + 1, a.split(" ").length + i + 1, a.split(" ").length + i));
+                } else {
+                    geometry.faces.push(new THREE.Face4(i, 0, a.split(" ").length, a.split(" ").length + i));
+                }
+            }
+            var material = new THREE.MeshBasicMaterial({
+                color: 0xffff00,
+                wireframe: true,
+                wireframeLinewidth: 5
+            });
+            var mesh = new THREE.Mesh(geometry, material);
+            mesh.drawMode = THREE.TrianglesDrawMode; //default
+            scene.add(mesh);
+        }
+
+        function render() {
+            renderer.render(scene, camera);
+        }
+
+        //初始化性能插件
+        var stats;
+
+        function initStats() {
+            stats = new Stats();
+            document.body.appendChild(stats.dom);
+        }
+
+        var controls;
+
+        function initControls() { //用户交互插件 鼠标左键按住旋转，右键按住平移，滚轮缩放
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            // 如果使用animate方法时，将此函数删除
+            // controls.addEventListener('change', render);
+            // 使动画循环使用时阻尼或自转 意思是否有惯性
+            controls.enableDamping = true;
+            //动态阻尼系数 就是鼠标拖拽旋转灵敏度
+            //controls.dampingFactor = 0.25;
+            //是否可以缩放
+            controls.enableZoom = true;
+            //是否自动旋转
+            controls.autoRotate = false;
+            //设置相机距离原点的最远距离
+            controls.minDistance = 5;
+            //设置相机距离原点的最远距离
+            controls.maxDistance = 20;
+            //是否开启右键拖拽
+            controls.enablePan = true;
+        }
+
+        //窗口变动触发的函数
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            render();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        function animate() {
+
+            render(); //更新控制器
+            stats.update(); //更新性能插件
+            controls.update();
+            requestAnimationFrame(animate);
+        }
+
+        function threeStart() {
+            initThree();
+            initScene();
+            initCamera();
+            initLight();
+            initObject();
+            initStats();
+            initControls();
+            animate();
+            window.onresize = onWindowResize;
+        }
+    </script>
+    <div id="canvas-frame"></div>
+</body>
+
+</html>
