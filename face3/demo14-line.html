@@ -84,12 +84,13 @@
             }
             var evX = translateX.min() + (translateX.max() - translateX.min()) / 2
             var evY = translateY.min() + (translateY.max() - translateY.min()) / 2
+            gePoints(initDataArr[0], 80, evX, evY)
+                // geBottomPoints(initDataArr[0], 80, evX, evY)
             for (var i = 0; i < initDataArr.length; i++) {
-                gePoints(initDataArr[i], 80, evX, evY)
+                getLines(initDataArr[i], 80, evX, evY)
             }
-            geBottomPoints(initDataArr[0], 80, evX, evY)
         }
-        // 初始化几何形状
+        // 初始化几何形状 
         function gePoints(a, height, evX, evY) {
             var geometry = new THREE.Geometry();
             for (var i = 0; i < a.split(" ").length; i++) {
@@ -143,6 +144,21 @@
             material.side = THREE.DoubleSide; //设置成两面都可见
             var mesh = new THREE.Mesh(geometry, material);
             scene.add(mesh);
+        }
+        //线
+        function getLines(a, height, evX, evY) {
+            var geometry = new THREE.Geometry();
+            for (var i = 0; i < a.split(" ").length; i++) {
+                var b = a.split(" ")[i].split(",")
+                geometry.vertices.push(new THREE.Vector3(b[0] - evX, -height / 2, b[1] - evY));
+            }
+            geometry.vertices.push(new THREE.Vector3(a.split(" ")[0].split(",")[0] - evX, -height / 2, a.split(" ")[0].split(",")[1] - evY));
+            var material = new THREE.LineBasicMaterial({
+                color: 0xffff00
+            });
+            material.side = THREE.DoubleSide; //设置成两面都可见
+            var line = new THREE.Line(geometry, material);
+            scene.add(line);
         }
 
         function render() {
