@@ -35,7 +35,7 @@
 
 <body onload="threeStart();">
     <script>
-        var renderer, camera, scene, light, width, height, stats, controls;
+        var renderer, camera, scene, scene1, scene2, light, width, height, stats, controls;
 
         function initThree() { // 渲染器
             width = document.getElementById('canvas-frame').clientWidth;
@@ -43,6 +43,7 @@
             renderer = new THREE.WebGLRenderer({ // 新建一个渲染器, 渲染器用来输出最终结果
                 antialias: true //抗锯齿
             });
+            renderer.autoClear = false;
             renderer.setSize(width, height); // 设置渲染的尺寸, 在这里是浏览器尺寸
             renderer.setClearColor(0x06183C, 1.0); // 设置背景的颜色
             renderer.shadowMap.enabled = true // 设置是否开启投影, 开启的话, 光照会产生投影
@@ -52,6 +53,8 @@
 
         function initScene() { // 场景
             scene = new THREE.Scene();
+            scene1 = new THREE.Scene();
+            scene2 = new THREE.Scene();
         }
 
         function initCamera() { // 透视投影照相机
@@ -85,8 +88,8 @@
             var evX = translateX.min() + (translateX.max() - translateX.min()) / 2
             var evY = translateY.min() + (translateY.max() - translateY.min()) / 2
             gePoints(initDataArr[0], 80, evX, evY)
-                // geBottomPoints(initDataArr[0], 80, evX, evY)
             for (var i = 0; i < initDataArr.length; i++) {
+                geBottomPoints(initDataArr[i], 80, evX, evY, i)
                 getLines(initDataArr[i], 80, evX, evY)
             }
         }
@@ -113,37 +116,72 @@
             }
             var material = new THREE.MeshBasicMaterial({
                 color: 0xDEEEEE,
-                // opacity: 0.5,
-                // transparent: true
             });
             material.side = THREE.DoubleSide; //设置成两面都可见
             var mesh = new THREE.Mesh(geometry, material);
-            scene.add(mesh);
+            scene2.add(mesh);
         }
+
         //底面
-        function geBottomPoints(a, height, evX, evY) {
+        function geBottomPoints(a, height, evX, evY, n) {
             var geometry = new THREE.Geometry();
             var bottomArr = [];
+            var longArr = []; // 点到原点的距离
+            var distanceArr = [];
             for (var i = 0; i < a.split(" ").length; i++) {
                 var b = a.split(" ")[i].split(",")
-                geometry.vertices.push(new THREE.Vector3(b[0] - evX, -height / 2, b[1] - evY));
-                bottomArr.push(i + a.split(" ").length)
+                geometry.vertices.push(new THREE.Vector3(b[0] - evX, (-height / 2), b[1] - evY));
+                bottomArr.push(i + a.split(" ").length);
+                longArr.push(b[0] ** 2 + b[1] ** 2);
+                distanceArr.push((b[0] - a.split(" ")[0].split(",")[0]) ** 2 + (b[1] - a.split(" ")[1].split(",")[0]) ** 2);
             }
-            for (var i = 0; i < a.split(" ").length; i++) {
-                if (i % 2 == 0) {
-                    if (i + 2 == a.split(" ").length) {
-                        geometry.faces.push(new THREE.Face3(i, i + 1, 0));
+            var distanceArrIndex = distanceArr.findIndex((n) => n == distanceArr.max())
+            var butPointArr = [] // 根据点到原点的距离判断凹凸转折点
+            for (var j = 0; j < longArr.length; j++) {
+                if (longArr[j] == longArr.max() || longArr[j] == longArr.min()) { //去掉起点与最远点
+                    continue;
+                }
+                if (longArr[j] < longArr[j - 1] && longArr[j] < longArr[j + 1]) { //凹
+                    butPointArr.push(j)
+                }
+                if (longArr[j] > longArr[j - 1] && longArr[j] > longArr[j + 1]) { //凸
+                    butPointArr.push(j)
+                }
+            }
+            if (butPointArr.length > 2) {
+                alert("凹凸转折点过多，请拆分图形")
+            } else if (butPointArr.length > 0) {
+                for (var i = 0; i < distanceArrIndex - 1; i++) {
+                    geometry.faces.push(new THREE.Face3(distanceArrIndex - 1, i, i + 1));
+                }
+                geometry.faces.push(new THREE.Face3(distanceArrIndex - 1, distanceArrIndex, butPointArr[0]));
+                for (var i = distanceArrIndex; i < butPointArr[0] - 1; i++) {
+                    geometry.faces.push(new THREE.Face3(distanceArrIndex, i + 1, i + 2));
+                }
+                for (var i = butPointArr[0]; i < a.split(" ").length; i++) {
+                    if (i + 1 == a.split(" ").length) {
+                        geometry.faces.push(new THREE.Face3(distanceArrIndex - 1, i, 0));
                     } else {
-                        geometry.faces.push(new THREE.Face3(i, i + 1, i + 2));
+                        geometry.faces.push(new THREE.Face3(distanceArrIndex - 1, i, i + 1));
+                    }
+                }
+            } else {
+                for (var i = 0; i < a.split(" ").length; i++) {
+                    if (i % 2 == 0) {
+                        if (i + 2 == a.split(" ").length) {
+                            geometry.faces.push(new THREE.Face3(i, i + 1, 0));
+                        } else {
+                            geometry.faces.push(new THREE.Face3(i, i + 1, i + 2));
+                        }
                     }
                 }
             }
             var material = new THREE.MeshBasicMaterial({
-                color: 0x1E7147
+                color: n == 0 ? 0x1E7147 : 0xffff00
             });
             material.side = THREE.DoubleSide; //设置成两面都可见
             var mesh = new THREE.Mesh(geometry, material);
-            scene.add(mesh);
+            n == 0 ? scene.add(mesh) : scene1.add(mesh)
         }
         //线
         function getLines(a, height, evX, evY) {
@@ -154,15 +192,20 @@
             }
             geometry.vertices.push(new THREE.Vector3(a.split(" ")[0].split(",")[0] - evX, -height / 2, a.split(" ")[0].split(",")[1] - evY));
             var material = new THREE.LineBasicMaterial({
-                color: 0xffff00
+                color: 0xff0000
             });
             material.side = THREE.DoubleSide; //设置成两面都可见
             var line = new THREE.Line(geometry, material);
-            scene.add(line);
+            scene2.add(line);
         }
 
         function render() {
+            renderer.clear();
             renderer.render(scene, camera);
+            renderer.clearDepth();
+            renderer.render(scene1, camera);
+            renderer.clearDepth();
+            renderer.render(scene2, camera);
         }
 
         function initStats() { //初始化性能插件
@@ -174,6 +217,8 @@
             controls = new THREE.OrbitControls(camera, renderer.domElement);
             controls.enableDamping = true;
             controls.dampingFactor = 0.25;
+            controls.maxPolarAngle = 1.5; //上下翻转的最大角度
+            controls.minPolarAngle = 0.3; //上下翻转的最小角度
             controls.enableZoom = true;
             controls.autoRotate = false;
             controls.minDistance = 5;
