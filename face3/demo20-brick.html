@@ -37,7 +37,7 @@
 <body onload="threeStart();">
     <script>
         var matArray = [new THREE.MeshBasicMaterial({
-            color: 0x9cb2d1
+            color: 0xafc0ca
         }), new THREE.MeshBasicMaterial({
             color: 0xafc0ca
         }), new THREE.MeshBasicMaterial({
@@ -50,21 +50,6 @@
             color: 0x9cb2d1
         })];
         var faceMaterial = new THREE.MeshFaceMaterial(matArray);
-
-        var matArray1 = [new THREE.MeshBasicMaterial({
-            color: 0xafc0ca
-        }), new THREE.MeshBasicMaterial({
-            color: 0x9cb2d1
-        }), new THREE.MeshBasicMaterial({
-            color: 0xd6e4ec
-        }), new THREE.MeshBasicMaterial({
-            color: 0x9cb2d1
-        }), new THREE.MeshBasicMaterial({
-            color: 0x9cb2d1
-        }), new THREE.MeshBasicMaterial({
-            color: 0x9cb2d1
-        })];
-        var faceMaterial1 = new THREE.MeshFaceMaterial(matArray1);
         var renderer, camera, scene, scene0, scene1, scene2, light, width, height, stats, controls;
 
         function initThree() { // 渲染器
@@ -144,17 +129,14 @@
             }
         }
         // 初始化几何形状 
-        var n = 0;
-
         function gePoints(a, height, evX, evY) { //侧立方体
             for (var i = 0; i < a.split(" ").length; i++) {
                 var b = a.split(" ")[i].split(",")
                 if (i % 2 == 0) {
-                    n++;
                     var b1 = a.split(" ")[i + 1].split(",")
                     var width = Math.sqrt((b1[1] - b[1]) ** 2 + (b1[0] - b[0]) ** 2)
                     var cubeGeometry = new THREE.BoxGeometry(10, height, width);
-                    var cube = new THREE.Mesh(cubeGeometry, n % 2 ? faceMaterial : faceMaterial1);
+                    var cube = new THREE.Mesh(cubeGeometry, faceMaterial);
                     cube.position.x = 0;
                     cube.position.y = 0;
                     cube.position.z = b[1] - evY;
@@ -164,7 +146,7 @@
                     var b1 = (i + 1 > a.split(" ").length - 1) ? a.split(" ")[0].split(",") : a.split(" ")[i + 1].split(",")
                     var width = Math.sqrt((b1[1] - b[1]) ** 2 + (b1[0] - b[0]) ** 2)
                     var cubeGeometry = new THREE.BoxGeometry(10, height, width);
-                    var cube = new THREE.Mesh(cubeGeometry, n % 2 ? faceMaterial : faceMaterial1);
+                    var cube = new THREE.Mesh(cubeGeometry, faceMaterial);
                     cube.position.x = b[0] - evX;
                     if (i + 1 <= a.split(" ").length - 1) {
                         var door = new THREE.BoxGeometry(10, height * 0.8, 150);
