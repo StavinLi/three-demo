@@ -65,7 +65,7 @@
             color: 0x9cb2d1
         })];
         var faceMaterial1 = new THREE.MeshFaceMaterial(matArray1);
-        var renderer, camera, scene, scene1, scene2, light, width, height, stats, controls;
+        var renderer, camera, scene, scene0, scene1, scene2, light, width, height, stats, controls;
 
         function initThree() { // 渲染器
             width = document.getElementById('canvas-frame').clientWidth;
@@ -82,9 +82,10 @@
         }
 
         function initScene() { // 场景
-            scene = new THREE.Scene();
-            scene1 = new THREE.Scene();
-            scene2 = new THREE.Scene();
+            scene = new THREE.Scene(); //外外地
+            scene0 = new THREE.Scene(); //内外地
+            scene1 = new THREE.Scene(); //内内地
+            scene2 = new THREE.Scene(); //墙，线
         }
 
         function initCamera() { // 透视投影照相机
@@ -101,6 +102,23 @@
         }
 
         function initObject() {
+
+            // 地面
+            var floor = new THREE.BoxGeometry(1000, 1500, 1);
+            var floorMaterial = new THREE.MeshBasicMaterial({
+                color: '#87CEEB',
+                wireframe: false
+            });
+            // var texture = THREE.ImageUtils.loadTexture("add-price.jpg", null, function(t) {});
+            // texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+            // texture.repeat.set(40, 40);
+            // var material = new THREE.MeshBasicMaterial({
+            //     map: texture
+            // });
+            var floorCube = new THREE.Mesh(floor, floorMaterial);
+            scene.add(floorCube);
+            floorCube.rotation.x += 0.5 * Math.PI;
+
             var axis = new THREE.AxisHelper(2000); // 在场景中添加坐标轴
             scene.add(axis);
             var initDataArr = ["244,125 885,125 885,1253 244,1253",
@@ -228,7 +246,7 @@
             });
             material.side = THREE.DoubleSide; //设置成两面都可见
             var mesh = new THREE.Mesh(geometry, material);
-            n == 0 ? scene.add(mesh) : scene1.add(mesh)
+            n == 0 ? scene0.add(mesh) : scene1.add(mesh)
         }
 
         function getLines(a, height, evX, evY) { //底线段
@@ -250,6 +268,8 @@
             renderer.clear();
             renderer.render(scene, camera);
             renderer.clearDepth();
+            renderer.render(scene0, camera);
+            renderer.clearDepth();
             renderer.render(scene1, camera);
             renderer.clearDepth();
             renderer.render(scene2, camera);
@@ -264,8 +284,8 @@
             controls = new THREE.OrbitControls(camera, renderer.domElement);
             controls.enableDamping = true;
             controls.dampingFactor = 0.25;
-            controls.maxPolarAngle = 1.5; //上下翻转的最大角度
-            controls.minPolarAngle = 0.3; //上下翻转的最小角度
+            controls.maxPolarAngle = 1.2; //上下翻转的最大角度
+            controls.minPolarAngle = 0.5; //上下翻转的最小角度
             controls.enableZoom = true;
             controls.autoRotate = false;
             controls.minDistance = 5;
