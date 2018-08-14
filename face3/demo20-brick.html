@@ -109,13 +109,13 @@
                 color: '#87CEEB',
                 wireframe: false
             });
-            // var texture = THREE.ImageUtils.loadTexture("add-price.jpg", null, function(t) {});
-            // texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-            // texture.repeat.set(40, 40);
-            // var material = new THREE.MeshBasicMaterial({
-            //     map: texture
-            // });
-            var floorCube = new THREE.Mesh(floor, floorMaterial);
+            var texture = THREE.ImageUtils.loadTexture("map-select1.jpg", null, function(t) {});
+            texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+            texture.repeat.set(40, 40);
+            var material = new THREE.MeshBasicMaterial({
+                map: texture
+            });
+            var floorCube = new THREE.Mesh(floor, material);
             scene.add(floorCube);
             floorCube.rotation.x += 0.5 * Math.PI;
 
