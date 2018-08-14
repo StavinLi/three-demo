@@ -154,16 +154,14 @@
                         door_cube.position.x = b[0] - evX;
                         var sphere1BSP = new ThreeBSP(cube);
                         var cube2BSP = new ThreeBSP(door_cube);
-
-                        resultBSP = sphere1BSP.subtract(cube2BSP);
-                        result = resultBSP.toMesh();
-                        result.material.shading = THREE.FlatShading;
+                        resultBSP = sphere1BSP.subtract(cube2BSP); //一个几何体中移除另一个几何的剩余部分
+                        result = resultBSP.toMesh(); // 将BSP对象转换成网格模型
+                        result.material.shading = THREE.FlatShading; //着色方式 THREE.SmoothShading平滑着色可以使物体的表面看起来变的更光滑一些，和THREE.FlatShading平面着色每个面是什么颜色就会被渲染成什么颜色，
                         result.geometry.computeFaceNormals();
                         result.geometry.computeVertexNormals();
-                        result.material.needsUpdate = true;
+                        result.material.needsUpdate = true; //是否刷新
                         result.geometry.buffersNeedUpdate = true;
-                        result.geometry.uvsNeedUpdate = true;
-                        console.log(result)
+                        result.geometry.uvsNeedUpdate = true; //需要更新当前几何体的纹理坐标数据
                         scene2.add(result);
                     } else {
                         scene2.add(cube);
