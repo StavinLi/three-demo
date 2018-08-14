@@ -29,12 +29,42 @@
     <script src="js/limitTextNum.js"></script>
     <script type="text/javascript" src="js/three.js"></script>
     <script src="js/OrbitControls.js"></script>
+    <script src="js/ThreeBSP.js"></script>
     <script type="text/javascript" src="js/stats.min.js"></script>
     <script src="js/dat.gui.min.js"></script>
 </head>
 
 <body onload="threeStart();">
     <script>
+        var matArray = [new THREE.MeshBasicMaterial({
+            color: 0x9cb2d1
+        }), new THREE.MeshBasicMaterial({
+            color: 0xafc0ca
+        }), new THREE.MeshBasicMaterial({
+            color: 0xd6e4ec
+        }), new THREE.MeshBasicMaterial({
+            color: 0x9cb2d1
+        }), new THREE.MeshBasicMaterial({
+            color: 0x9cb2d1
+        }), new THREE.MeshBasicMaterial({
+            color: 0x9cb2d1
+        })];
+        var faceMaterial = new THREE.MeshFaceMaterial(matArray);
+
+        var matArray1 = [new THREE.MeshBasicMaterial({
+            color: 0xafc0ca
+        }), new THREE.MeshBasicMaterial({
+            color: 0x9cb2d1
+        }), new THREE.MeshBasicMaterial({
+            color: 0xd6e4ec
+        }), new THREE.MeshBasicMaterial({
+            color: 0x9cb2d1
+        }), new THREE.MeshBasicMaterial({
+            color: 0x9cb2d1
+        }), new THREE.MeshBasicMaterial({
+            color: 0x9cb2d1
+        })];
+        var faceMaterial1 = new THREE.MeshFaceMaterial(matArray1);
         var renderer, camera, scene, scene1, scene2, light, width, height, stats, controls;
 
         function initThree() { // 渲染器
@@ -71,6 +101,8 @@
         }
 
         function initObject() {
+            var axis = new THREE.AxisHelper(2000); // 在场景中添加坐标轴
+            scene.add(axis);
             var initDataArr = ["244,125 885,125 885,1253 244,1253",
                 "344,161 816,160 816,290 759,290 736,290 736,223 673,224 673,179 605,180 604.9060453400504,225.0808564231738 552.9508816120906,225.90554156171282 500,259 451,276 347,277",
                 "805,362 701,362 701,514 805,514",
@@ -94,32 +126,31 @@
             }
         }
         // 初始化几何形状 
+        var n = 0;
+
         function gePoints(a, height, evX, evY) {
-            var geometry = new THREE.Geometry();
             for (var i = 0; i < a.split(" ").length; i++) {
                 var b = a.split(" ")[i].split(",")
-                geometry.vertices.push(new THREE.Vector3(b[0] - evX, height / 2, b[1] - evY));
-            }
-            for (var i = 0; i < a.split(" ").length; i++) {
-                var b = a.split(" ")[i].split(",")
-                geometry.vertices.push(new THREE.Vector3(b[0] - evX, -height / 2, b[1] - evY));
-            }
-            //侧面
-            for (var i = 0; i < a.split(" ").length; i++) {
-                if (i != a.split(" ").length - 1) {
-                    geometry.faces.push(new THREE.Face3(i, i + 1, a.split(" ").length + i + 1));
-                    geometry.faces.push(new THREE.Face3(i, a.split(" ").length + i + 1, a.split(" ").length + i));
+                if (i % 2 == 0) {
+                    n++;
+                    var b1 = a.split(" ")[i + 1].split(",")
+                    var width = Math.sqrt((b1[1] - b[1]) ** 2 + (b1[0] - b[0]) ** 2)
+                    var cubeGeometry = new THREE.BoxGeometry(10, height, width);
+                    var cube = new THREE.Mesh(cubeGeometry, n % 2 ? faceMaterial : faceMaterial1);
+                    cube.position.x = 0;
+                    cube.position.y = 0;
+                    cube.position.z = b[1] - evY;
+                    cube.rotation.y += 0.5 * Math.PI;
+                    scene2.add(cube);
                 } else {
-                    geometry.faces.push(new THREE.Face3(i, 0, a.split(" ").length));
-                    geometry.faces.push(new THREE.Face3(i, a.split(" ").length, a.split(" ").length + i));
+                    var b1 = (i + 1 > a.split(" ").length - 1) ? a.split(" ")[0].split(",") : a.split(" ")[i + 1].split(",")
+                    var width = Math.sqrt((b1[1] - b[1]) ** 2 + (b1[0] - b[0]) ** 2)
+                    var cubeGeometry = new THREE.BoxGeometry(10, height, width);
+                    var cube = new THREE.Mesh(cubeGeometry, n % 2 ? faceMaterial : faceMaterial1);
+                    cube.position.x = b[0] - evX;
+                    scene2.add(cube);
                 }
             }
-            var material = new THREE.MeshBasicMaterial({
-                color: 0xDEEEEE,
-            });
-            material.side = THREE.DoubleSide; //设置成两面都可见
-            var mesh = new THREE.Mesh(geometry, material);
-            scene2.add(mesh);
         }
 
         //底面
