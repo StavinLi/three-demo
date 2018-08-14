@@ -155,14 +155,31 @@
                     cube = new THREE.Mesh(cubeGeometry, faceMaterial);
                     cube.position.x = b[0] - evX;
                     cube.position.z = (b[1] - evY) - width / 2;
-                } else if (b[0] * 1 > b1[0] * 1 && b[1] * 1 > b1[1] * 1) {
-                    console.log("向左下倾斜")
+                } else if (b[0] * 1 > b1[0] * 1 && b[1] * 1 > b1[1] * 1) { //console.log("向左上倾斜")
+                    cubeGeometry = new THREE.BoxGeometry(10, height, width);
+                    cube = new THREE.Mesh(cubeGeometry, faceMaterial);
+                    cube.position.x = (b[0] - evX) + width / 2;
+                    cube.position.z = b[1] - evY;
+                    cube.rotation.y = angle(b1[0], b1[1], b[0], b[1]) / 180 * Math.PI;
                 } else if (b[0] * 1 > b1[0] * 1 && b[1] * 1 < b1[1] * 1) {
-                    console.log("向左下倾斜")
+                    // console.log("向左下倾斜")
+                    // var angleNum = angle(b1[0], b1[1], b[0], b[1])
+                    // var gn = angleNum / 180 * Math.PI
+                    // console.log(gn)
+                    // cubeGeometry = new THREE.BoxGeometry(width, height, 10);
+                    // cube = new THREE.Mesh(cubeGeometry, faceMaterial);
+                    // cube.position.x = b[0] - evX - width;
+                    // cube.position.z = (b[1] - evY) + width * gn;
+                    // cube.rotation.y = -gn;
                 } else if (b[0] * 1 < b1[0] * 1 && b[1] * 1 < b1[1] * 1) {
                     console.log("向右下倾斜")
-                } else if (b[0] * 1 < b1[0] * 1 && b[1] * 1 > b1[1] * 1) {
-                    console.log("向右上倾斜")
+
+                } else if (b[0] * 1 < b1[0] * 1 && b[1] * 1 > b1[1] * 1) { // console.log("向右上倾斜")
+                    cubeGeometry = new THREE.BoxGeometry(width, height, 10);
+                    cube = new THREE.Mesh(cubeGeometry, faceMaterial);
+                    cube.position.x = (b[0] - evX) + width / 2;
+                    cube.position.z = b[1] - evY;
+                    cube.rotation.y = angle(b1[0], b1[1], b[0], b[1]) / 180 * Math.PI;
                 }
                 if (cube) {
                     cube.position.y = height / 2;
@@ -259,6 +276,13 @@
             controls.minDistance = 5;
             controls.maxDistance = 2500;
             controls.enablePan = false;
+        }
+
+        function angle(a, b, c, d) {
+            var diff_x = a - c;
+            var diff_y = b - d;
+            //返回角度,不是弧度
+            return 360 * Math.atan(diff_y / diff_x) / (2 * Math.PI)
         }
 
         function onWindowResize() { //窗口变动触发的函数
