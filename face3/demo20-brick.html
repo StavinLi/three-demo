@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>基本材质</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        html,
+        body {
+            width: 100%;
+            height: 100%;
+        }
+        
+        div#canvas-frame {
+            border: none;
+            cursor: pointer;
+            width: 100%;
+            height: 100%;
+            background-color: #EEEEEE;
+        }
+    </style>
+    <script src="js/jquery-3.1.1.min.js"></script>
+    <script src="js/limitTextNum.js"></script>
+    <script type="text/javascript" src="js/three.js"></script>
+    <script src="js/OrbitControls.js"></script>
+    <script src="js/ThreeBSP.js"></script>
+    <script type="text/javascript" src="js/stats.min.js"></script>
+    <script src="js/dat.gui.min.js"></script>
+</head>
+
+<body onload="threeStart();">
+    <script>
+        var matArray = [new THREE.MeshBasicMaterial({
+            color: 0x9cb2d1
+        }), new THREE.MeshBasicMaterial({
+            color: 0xafc0ca
+        }), new THREE.MeshBasicMaterial({
+            color: 0xd6e4ec
+        }), new THREE.MeshBasicMaterial({
+            color: 0x9cb2d1
+        }), new THREE.MeshBasicMaterial({
+            color: 0x9cb2d1
+        }), new THREE.MeshBasicMaterial({
+            color: 0x9cb2d1
+        })];
+        var faceMaterial = new THREE.MeshFaceMaterial(matArray);
+
+        var matArray1 = [new THREE.MeshBasicMaterial({
+            color: 0xafc0ca
+        }), new THREE.MeshBasicMaterial({
+            color: 0x9cb2d1
+        }), new THREE.MeshBasicMaterial({
+            color: 0xd6e4ec
+        }), new THREE.MeshBasicMaterial({
+            color: 0x9cb2d1
+        }), new THREE.MeshBasicMaterial({
+            color: 0x9cb2d1
+        }), new THREE.MeshBasicMaterial({
+            color: 0x9cb2d1
+        })];
+        var faceMaterial1 = new THREE.MeshFaceMaterial(matArray1);
+        var renderer, camera, scene, scene0, scene1, scene2, light, width, height, stats, controls;
+
+        function initThree() { // 渲染器
+            width = document.getElementById('canvas-frame').clientWidth;
+            height = document.getElementById('canvas-frame').clientHeight;
+            renderer = new THREE.WebGLRenderer({ // 新建一个渲染器, 渲染器用来输出最终结果
+                antialias: true //抗锯齿
+            });
+            renderer.autoClear = false;
+            renderer.setSize(width, height); // 设置渲染的尺寸, 在这里是浏览器尺寸
+            renderer.setClearColor(0x06183C, 1.0); // 设置背景的颜色
+            renderer.shadowMap.enabled = true // 设置是否开启投影, 开启的话, 光照会产生投影
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap // 设置投影类型, 这边的柔和投影
+            document.getElementById('canvas-frame').appendChild(renderer.domElement);
+        }
+
+        function initScene() { // 场景
+            scene = new THREE.Scene(); //外外地
+            scene0 = new THREE.Scene(); //内外地
+            scene1 = new THREE.Scene(); //内内地
+            scene2 = new THREE.Scene(); //墙，线
+        }
+
+        function initCamera() { // 透视投影照相机
+            camera = new THREE.PerspectiveCamera(45, width / height, 1, 10000); // 新建一个透视摄像机, 并设置 视场, 视野长宽比例, 可见远近范围
+            camera.position.set(1000, 1000, 1000) // 设置摄像机的位置
+            camera.lookAt(new THREE.Vector3(0, 0, 0)); // 设置摄像机观察的方向
+            scene.add(camera);
+        };
+
+        function initLight() { // 光
+            light = new THREE.PointLight(0xff0000, 1, 100);
+            light.position.set(1000, 1000, 1000);
+            scene.add(light);
+        }
+
+        function initObject() {
+
+            // 地面
+            var floor = new THREE.BoxGeometry(1000, 1500, 1);
+            var floorMaterial = new THREE.MeshBasicMaterial({
+                color: '#87CEEB',
+                wireframe: false
+            });
+            // var texture = THREE.ImageUtils.loadTexture("add-price.jpg", null, function(t) {});
+            // texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+            // texture.repeat.set(40, 40);
+            // var material = new THREE.MeshBasicMaterial({
+            //     map: texture
+            // });
+            var floorCube = new THREE.Mesh(floor, floorMaterial);
+            scene.add(floorCube);
+            floorCube.rotation.x += 0.5 * Math.PI;
+
+            var axis = new THREE.AxisHelper(2000); // 在场景中添加坐标轴
+            scene.add(axis);
+            var initDataArr = ["244,125 885,125 885,1253 244,1253",
+                "344,161 816,160 816,290 759,290 736,290 736,223 673,224 673,179 605,180 604.9060453400504,225.0808564231738 552.9508816120906,225.90554156171282 500,259 451,276 347,277",
+                "805,362 701,362 701,514 805,514",
+                "816,570 296,570 296,1170 816,1170",
+                "816,570 848,570 848,666 816,666",
+                "816,696 848,696 848,788 816,788",
+                "816,858 848,858 848,1018 816,1018",
+            ]
+            var translateX = [];
+            var translateY = [];
+            for (var i = 0; i < initDataArr[0].split(" ").length; i++) {
+                translateX.push(initDataArr[0].split(" ")[i].split(",")[0])
+                translateY.push(initDataArr[0].split(" ")[i].split(",")[1])
+            }
+            var evX = translateX.min() + (translateX.max() - translateX.min()) / 2
+            var evY = translateY.min() + (translateY.max() - translateY.min()) / 2
+            gePoints(initDataArr[0], 80, evX, evY)
+            for (var i = 0; i < initDataArr.length; i++) {
+                geBottomPoints(initDataArr[i], 80, evX, evY, i)
+                getLines(initDataArr[i], 80, evX, evY)
+            }
+        }
+        // 初始化几何形状 
+        var n = 0;
+
+        function gePoints(a, height, evX, evY) { //侧立方体
+            for (var i = 0; i < a.split(" ").length; i++) {
+                var b = a.split(" ")[i].split(",")
+                if (i % 2 == 0) {
+                    n++;
+                    var b1 = a.split(" ")[i + 1].split(",")
+                    var width = Math.sqrt((b1[1] - b[1]) ** 2 + (b1[0] - b[0]) ** 2)
+                    var cubeGeometry = new THREE.BoxGeometry(10, height, width);
+                    var cube = new THREE.Mesh(cubeGeometry, n % 2 ? faceMaterial : faceMaterial1);
+                    cube.position.x = 0;
+                    cube.position.y = 0;
+                    cube.position.z = b[1] - evY;
+                    cube.rotation.y += 0.5 * Math.PI;
+                    scene2.add(cube);
+                } else {
+                    var b1 = (i + 1 > a.split(" ").length - 1) ? a.split(" ")[0].split(",") : a.split(" ")[i + 1].split(",")
+                    var width = Math.sqrt((b1[1] - b[1]) ** 2 + (b1[0] - b[0]) ** 2)
+                    var cubeGeometry = new THREE.BoxGeometry(10, height, width);
+                    var cube = new THREE.Mesh(cubeGeometry, n % 2 ? faceMaterial : faceMaterial1);
+                    cube.position.x = b[0] - evX;
+                    if (i + 1 <= a.split(" ").length - 1) {
+                        var door = new THREE.BoxGeometry(10, height * 0.8, 150);
+                        var door_cube = new THREE.Mesh(door);
+                        door_cube.position.x = b[0] - evX;
+                        var sphere1BSP = new ThreeBSP(cube);
+                        var cube2BSP = new ThreeBSP(door_cube);
+                        resultBSP = sphere1BSP.subtract(cube2BSP); //一个几何体中移除另一个几何的剩余部分
+                        result = resultBSP.toMesh(); // 将BSP对象转换成网格模型
+                        result.material.shading = THREE.FlatShading; //着色方式 THREE.SmoothShading平滑着色可以使物体的表面看起来变的更光滑一些，和THREE.FlatShading平面着色每个面是什么颜色就会被渲染成什么颜色，
+                        result.geometry.computeFaceNormals();
+                        result.geometry.computeVertexNormals();
+                        result.material.needsUpdate = true; //是否刷新
+                        result.geometry.buffersNeedUpdate = true;
+                        result.geometry.uvsNeedUpdate = true; //需要更新当前几何体的纹理坐标数据
+                        scene2.add(result);
+                    } else {
+                        scene2.add(cube);
+                    }
+                }
+            }
+        }
+
+        function geBottomPoints(a, height, evX, evY, n) { //底平面
+            var geometry = new THREE.Geometry();
+            var bottomArr = [];
+            var longArr = []; // 点到原点的距离
+            var distanceArr = [];
+            for (var i = 0; i < a.split(" ").length; i++) {
+                var b = a.split(" ")[i].split(",")
+                geometry.vertices.push(new THREE.Vector3(b[0] - evX, (-height / 2), b[1] - evY));
+                bottomArr.push(i + a.split(" ").length);
+                longArr.push(b[0] ** 2 + b[1] ** 2);
+                distanceArr.push((b[0] - a.split(" ")[0].split(",")[0]) ** 2 + (b[1] - a.split(" ")[1].split(",")[0]) ** 2);
+            }
+            var distanceArrIndex = distanceArr.findIndex((n) => n == distanceArr.max())
+            var butPointArr = [] // 根据点到原点的距离判断凹凸转折点
+            for (var j = 0; j < longArr.length; j++) {
+                if (longArr[j] == longArr.max() || longArr[j] == longArr.min()) { //去掉起点与最远点
+                    continue;
+                }
+                if (longArr[j] < longArr[j - 1] && longArr[j] < longArr[j + 1]) { //凹
+                    butPointArr.push(j)
+                }
+                if (longArr[j] > longArr[j - 1] && longArr[j] > longArr[j + 1]) { //凸
+                    butPointArr.push(j)
+                }
+            }
+            if (butPointArr.length > 2) {
+                alert("凹凸转折点过多，请拆分图形")
+            } else if (butPointArr.length > 0) {
+                for (var i = 0; i < distanceArrIndex - 1; i++) {
+                    geometry.faces.push(new THREE.Face3(distanceArrIndex - 1, i, i + 1));
+                }
+                geometry.faces.push(new THREE.Face3(distanceArrIndex - 1, distanceArrIndex, butPointArr[0]));
+                for (var i = distanceArrIndex; i < butPointArr[0] - 1; i++) {
+                    geometry.faces.push(new THREE.Face3(distanceArrIndex, i + 1, i + 2));
+                }
+                for (var i = butPointArr[0]; i < a.split(" ").length; i++) {
+                    if (i + 1 == a.split(" ").length) {
+                        geometry.faces.push(new THREE.Face3(distanceArrIndex - 1, i, 0));
+                    } else {
+                        geometry.faces.push(new THREE.Face3(distanceArrIndex - 1, i, i + 1));
+                    }
+                }
+            } else {
+                for (var i = 0; i < a.split(" ").length; i++) {
+                    if (i % 2 == 0) {
+                        if (i + 2 == a.split(" ").length) {
+                            geometry.faces.push(new THREE.Face3(i, i + 1, 0));
+                        } else {
+                            geometry.faces.push(new THREE.Face3(i, i + 1, i + 2));
+                        }
+                    }
+                }
+            }
+            var material = new THREE.MeshBasicMaterial({
+                color: n == 0 ? 0x1E7147 : 0xffff00
+            });
+            material.side = THREE.DoubleSide; //设置成两面都可见
+            var mesh = new THREE.Mesh(geometry, material);
+            n == 0 ? scene0.add(mesh) : scene1.add(mesh)
+        }
+
+        function getLines(a, height, evX, evY) { //底线段
+            var geometry = new THREE.Geometry();
+            for (var i = 0; i < a.split(" ").length; i++) {
+                var b = a.split(" ")[i].split(",")
+                geometry.vertices.push(new THREE.Vector3(b[0] - evX, -height / 2, b[1] - evY));
+            }
+            geometry.vertices.push(new THREE.Vector3(a.split(" ")[0].split(",")[0] - evX, -height / 2, a.split(" ")[0].split(",")[1] - evY));
+            var material = new THREE.LineBasicMaterial({
+                color: 0xff0000
+            });
+            material.side = THREE.DoubleSide; //设置成两面都可见
+            var line = new THREE.Line(geometry, material);
+            scene2.add(line);
+        }
+
+        function render() {
+            renderer.clear();
+            renderer.render(scene, camera);
+            renderer.clearDepth();
+            renderer.render(scene0, camera);
+            renderer.clearDepth();
+            renderer.render(scene1, camera);
+            renderer.clearDepth();
+            renderer.render(scene2, camera);
+        }
+
+        function initStats() { //初始化性能插件
+            stats = new Stats();
+            document.body.appendChild(stats.dom);
+        }
+
+        function initControls() { //用户交互插件 鼠标左键按住旋转，右键按住平移，滚轮缩放
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.25;
+            controls.maxPolarAngle = 1.2; //上下翻转的最大角度
+            controls.minPolarAngle = 0.5; //上下翻转的最小角度
+            controls.enableZoom = true;
+            controls.autoRotate = false;
+            controls.minDistance = 5;
+            controls.maxDistance = 2500;
+            controls.enablePan = false;
+        }
+
+        function onWindowResize() { //窗口变动触发的函数
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            render();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        function animate() {
+            render(); //更新控制器
+            stats.update(); //更新性能插件
+            controls.update();
+            requestAnimationFrame(animate);
+        }
+
+        function threeStart() {
+            initThree();
+            initScene();
+            initCamera();
+            initLight();
+            initObject();
+            initStats();
+            initControls();
+            animate();
+            window.onresize = onWindowResize;
+        }
+    </script>
+    <div id="canvas-frame"></div>
+</body>
+
+</html>
