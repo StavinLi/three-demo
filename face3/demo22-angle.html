@@ -150,13 +150,11 @@
 
         function geBottomPoints(a, height, evX, evY, n) { //底平面
             var geometry = new THREE.Geometry();
-            var bottomArr = [];
             var longArr = []; // 点到原点的距离
             var distanceArr = [];
             for (var i = 0; i < a.split(" ").length; i++) {
                 var b = a.split(" ")[i].split(",")
                 geometry.vertices.push(new THREE.Vector3(b[0] - evX, 0, b[1] - evY));
-                bottomArr.push(i + a.split(" ").length);
                 longArr.push(b[0] ** 2 + b[1] ** 2);
                 distanceArr.push((b[0] - a.split(" ")[0].split(",")[0]) ** 2 + (b[1] - a.split(" ")[1].split(",")[0]) ** 2);
             }
